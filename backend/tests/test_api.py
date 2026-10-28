@@ -55,3 +55,34 @@ def test_websocket_ping_and_session():
         summary = data["summary"]
         assert summary["session_id"] == "test-ws-session"
         assert summary["session_status"] == "COMPLETED"
+
+
+def test_websocket_malformed_json_resilience():
+    """Verify that sending non-JSON or invalid syntax does not crash the WebSocket."""
+    with client.websocket_connect("/ws/monitor") as websocket:
+        websocket.send_text("THIS_IS_NOT_VALID_JSON{{{")
+        # Should stay alive and respond to valid ping
+        websocket.send_text(json.dumps({"action": "ping"}))
+        data = websocket.receive_json()
+        assert data["type"] == "pong"
+
+
+def test_websocket_corrupted_frame_handling():
+    """Verify that corrupted base64 frames return UNKNOWN telemetry safely without error."""
+    with client.websocket_connect("/ws/monitor") as websocket:
+        websocket.send_text(json.dumps({"action": "frame", "frame": "corrupted_non_image_base64_data"}))
+        data = websocket.receive_json()
+        assert data["status"] == "UNKNOWN"
+        assert data["face_detected"] is False
+
+
+def test_websocket_oversized_payload_rejection():
+    """Verify that payloads exceeding 5MB are safely rejected without crashing."""
+    with client.websocket_connect("/ws/monitor") as websocket:
+        huge_frame = "A" * (6 * 1024 * 1024)  # 6 MB
+        websocket.send_text(json.dumps({"action": "frame", "frame": huge_frame}))
+        # Socket should remain responsive
+        websocket.send_text(json.dumps({"action": "ping"}))
+        data = websocket.receive_json()
+        assert data["type"] == "pong"
+

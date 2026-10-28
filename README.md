@@ -17,19 +17,32 @@
 * **Mouth Aspect Ratio (MAR) Yawning Analysis:** Tracks sustained mouth opening to flag potential respiratory fatigue signs.
 * **Synthesized Audio Alert Chimes:** Web Audio API dual-harmonic alerts and pulsed emergency alarms with built-in cooldown logic.
 * **Cockpit Instrument Panel:** Live analog chronometer gauge, head position reticle, real-time diagnostic latency readouts.
-* **Session Archives & Analytics:** Historical logs, duration trends, vigilance fidelity ratings, and customizable threshold sliders.
+* **Session Archives & Analytics:** Historical logs, duration trends, experimental session stability ratings, and customizable threshold sliders.
 * **Firebase & Local Demo Mode:** Supports official Firebase Authentication & Cloud Firestore while offering an instant zero-configuration demo mode for evaluators.
 
 ---
 
-## 2. Architecture & Directory Structure
+## 2. Documentation Suite
+
+Full technical and operational documentation is available in the `docs/` directory:
+
+* 📄 [**Current Verification Report**](file:///c:/Users/dpava/drivesafe-ai/docs/CURRENT_VERIFICATION_REPORT.md): Complete requirement-by-requirement verification matrix, evidence, and manual action audit.
+* 🛠️ [**Setup & Startup Guide**](file:///c:/Users/dpava/drivesafe-ai/docs/SETUP_GUIDE.md): Step-by-step PowerShell installation and startup commands for Windows.
+* 🧪 [**Testing & QA Guide**](file:///c:/Users/dpava/drivesafe-ai/docs/TESTING_GUIDE.md): Instructions for automated test execution and safe, stationary desk testing scripts.
+* 🚀 [**Deployment Guide**](file:///c:/Users/dpava/drivesafe-ai/docs/DEPLOYMENT_GUIDE.md): Production deployment guide covering Vercel, Render Docker, and Firebase.
+* ⚠️ [**Known Engineering Limitations**](file:///c:/Users/dpava/drivesafe-ai/docs/KNOWN_LIMITATIONS.md): Optical, physiological, environmental, and regulatory boundaries.
+* 🏁 [**Final Completion Report**](file:///c:/Users/dpava/drivesafe-ai/docs/FINAL_COMPLETION_REPORT.md): Executive summary, verified feature status, and demonstration checklist.
+
+---
+
+## 3. Architecture & Repository Structure
 
 ```
 drivesafe-ai/
 ├── frontend/                     # React + TypeScript + Vite frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── common/           # BrandLogo, PrimaryButton, StatusBadge, etc.
+│   │   │   ├── common/           # BrandLogo, PrimaryButton, StatusBadge
 │   │   │   ├── navigation/       # SiteNavigation, Footer
 │   │   │   ├── dashboard/        # DashboardLayout, DashboardHeader, MetricCard
 │   │   │   └── monitoring/       # MonitoringViewport, EarGauge
@@ -42,9 +55,9 @@ drivesafe-ai/
 │   │   ├── App.tsx               # Client-side routing and protected routes
 │   │   └── index.css             # Heritage design tokens and styles
 │   ├── public/                   # SVG Crest, Favicon, static assets
+│   ├── vercel.json               # Vercel SPA routing and security headers
 │   ├── tailwind.config.js        # Curated Heritage Luxury color palette
-│   ├── package.json
-│   └── .env.example
+│   └── package.json
 ├── backend/                      # Python 3.13 FastAPI backend
 │   ├── app/
 │   │   ├── api/                  # health, monitoring endpoints & WebSockets
@@ -54,20 +67,20 @@ drivesafe-ai/
 │   │   ├── schemas.py            # Pydantic telemetry models
 │   │   └── main.py               # FastAPI application with lifespan manager
 │   ├── models/                   # MediaPipe face_landmarker.task model
-│   ├── tests/                    # 20 automated unit and integration tests
+│   ├── tests/                    # 23 automated unit and resilience tests
+│   ├── Dockerfile                # Production containerfile with OpenCV dependencies
 │   ├── requirements.txt
 │   └── .env.example
-├── docs/
-│   └── FINAL_WEBSITE_STATUS.md   # Complete verification matrix & report
+├── docs/                         # Comprehensive engineering documentation
 ├── firestore.rules               # Production Firestore security rules
 ├── firebase.json                 # Firebase Hosting & Firestore configuration
-├── .gitignore
+├── render.yaml                   # 1-Click Render Docker blueprint
 └── README.md
 ```
 
 ---
 
-## 3. Quick Start & Execution
+## 4. Quick Start & Execution
 
 ### Prerequisites
 * **Node.js:** v18+ (tested on Node v24)
@@ -75,17 +88,10 @@ drivesafe-ai/
 
 ### Step 1: Launch Backend Server
 ```powershell
-# Navigate to backend directory
-cd backend
-
-# Activate virtual environment
-.\venv\Scripts\activate
-
-# Start FastAPI Uvicorn server
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+cd c:\Users\dpava\drivesafe-ai\backend
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
-*Health Check:* Open `http://127.0.0.1:8000/api/health` in your browser.  
-Expected response:
+*Health Check:* Open `http://127.0.0.1:8000/api/health` in your browser. Expected response:
 ```json
 {
   "status": "HEALTHY",
@@ -96,51 +102,33 @@ Expected response:
 ```
 
 ### Step 2: Launch Frontend Development Server
+In a second terminal window:
 ```powershell
-# In a second terminal, navigate to frontend directory
-cd frontend
-
-# Install dependencies (if not already installed)
-npm install
-
-# Launch Vite dev server
+cd c:\Users\dpava\drivesafe-ai\frontend
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
-*Open Application:* Navigate to `http://127.0.0.1:5173/`.
+Open your browser and navigate to:
+```
+http://127.0.0.1:5173/
+```
+
+### Step 3: Instant Demo Operator Login
+1. Navigate to `/login`.
+2. Click **"Bypass with Demo Operator &rarr;"**.
+3. You will be authenticated immediately as **"Lord Sterling"** (`demo_driver_001`) with local session storage persistence.
 
 ---
 
-## 4. Testing Suite
+## 5. Automated Verification Results
 
-### Backend Python Unit Tests (20 Tests Passed)
-The backend test suite verifies EAR mathematics, degenerate landmark protection, temporal closure debounce, hysteresis recovery, yawning durations, and WebSocket communication:
+### Backend Python Pytest Suite (23 Passed, 0 Failed)
+The test suite verifies EAR mathematics, degenerate landmark handling, temporal debouncing, hysteresis recovery, yawning calculations, oversized payload rejection, corrupted base64 resilience, and WebSocket session lifecycles:
 ```powershell
-cd backend
-.\venv\Scripts\python.exe -m pytest tests -v
+.\backend\venv\Scripts\python.exe -m pytest backend/tests -v
 ```
-Output:
-```
-backend/tests/test_api.py::test_root_endpoint PASSED
-backend/tests/test_api.py::test_health_endpoint PASSED
-backend/tests/test_api.py::test_monitoring_config_endpoint PASSED
-backend/tests/test_api.py::test_websocket_ping_and_session PASSED
-backend/tests/test_drowsiness_engine.py::test_drowsiness_engine_initial_alert PASSED
-backend/tests/test_drowsiness_engine.py::test_drowsiness_engine_short_blink_no_event PASSED
-backend/tests/test_drowsiness_engine.py::test_drowsiness_engine_prolonged_closure_triggers_event_once PASSED
-backend/tests/test_drowsiness_engine.py::test_drowsiness_engine_hysteresis_reopen PASSED
-backend/tests/test_drowsiness_engine.py::test_drowsiness_engine_no_face_handling PASSED
-backend/tests/test_eye_analysis.py::test_euclidean_distance PASSED
-backend/tests/test_eye_analysis.py::test_ear_open_eye PASSED
-backend/tests/test_eye_analysis.py::test_ear_closed_eye PASSED
-backend/tests/test_eye_analysis.py::test_ear_degenerate_zero_width PASSED
-backend/tests/test_eye_analysis.py::test_ear_invalid_length PASSED
-backend/tests/test_eye_analysis.py::test_ear_nan_inf_handling PASSED
-backend/tests/test_eye_analysis.py::test_compute_eyes_telemetry_synthetic_face PASSED
-backend/tests/test_session_manager.py::test_session_lifecycle_and_summary PASSED
-backend/tests/test_session_manager.py::test_session_manager PASSED
-backend/tests/test_yawn_analysis.py::test_calculate_mar_synthetic PASSED
-backend/tests/test_yawn_analysis.py::test_yawn_tracker_temporal_duration PASSED
-======================== 20 passed in 1.00s ========================
+**Result:**
+```text
+======================== 23 passed, 1 warning in 1.73s ========================
 ```
 
 ### Frontend Production Build
@@ -148,11 +136,18 @@ backend/tests/test_yawn_analysis.py::test_yawn_tracker_temporal_duration PASSED
 cd frontend
 npm run build
 ```
-Compiles with 0 errors via TypeScript and Vite into `frontend/dist/`.
+**Result:**
+```text
+✓ 1991 modules transformed.
+dist/index.html                   1.43 kB
+dist/assets/index-DZQGduq_.css   36.62 kB
+dist/assets/index-C_prB1D7.js   955.06 kB
+✓ built in 1.71s
+```
 
 ---
 
-## 5. Telemetry Mathematics
+## 6. Telemetry Mathematics & Formulations
 
 ### Eye Aspect Ratio (EAR)
 For 6 ordered eye landmarks $p_1, p_2, p_3, p_4, p_5, p_6$:
@@ -168,8 +163,8 @@ $$\text{MAR} = \frac{\|p_{13} - p_{14}\| + \|p_{37} - p_{84}\| + \|p_{267} - p_{
 
 ---
 
-## 6. Privacy & Safety Model
+## 7. Privacy & Safety Model
 
-1. **Hardware-Local Frame Processing:** Video frames captured via `getUserMedia` are transmitted via localhost WebSocket directly to the local Python engine for landmark processing.
+1. **Hardware-Local Frame Processing:** Video frames captured via `getUserMedia` are transmitted via local WebSocket directly to the local Python engine for landmark processing.
 2. **Zero Raw Video Retention:** Frames are processed ephemerally in RAM. No video files or raw frames are written to persistent storage or external networks.
-3. **Assistive Nature:** DriveSafe AI is a driver-assistance research prototype. It does not medically diagnose fatigue or guarantee accident prevention. It does not replace required physical rest breaks.
+3. **Decision-Support Prototype:** DriveSafe AI is a driver-assistance research prototype. It does not medically diagnose fatigue or guarantee accident prevention. It does not replace required physical rest breaks.

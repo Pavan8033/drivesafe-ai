@@ -77,9 +77,9 @@ export const InsightsPage: React.FC = () => {
       {/* Aggregate KPI Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <MetricCard
-          label="Vigilance Fidelity Index"
+          label="Session Stability Ratio (Experimental)"
           value={`${vigilanceIndex}%`}
-          subtext="Telemetry stability rating"
+          subtext="Heuristic stability ratio (Non-clinical)"
           icon={<Compass className="w-4 h-4 text-emerald-400" />}
           status="safe"
         />
@@ -181,6 +181,9 @@ export const InsightsPage: React.FC = () => {
         </h4>
         <p>
           DriveSafe AI measures palpebral aperture utilizing the Euclidean distance formulation of Soukupov&aacute; &amp; &Ccaron;ech (2016). Prolonged eye closures exceeding 1.5 seconds reflect significant declines in cortical activation. However, physiological variation across individuals, lighting angles, and eyewear can influence baseline EAR. Always calibrate your threshold in Settings if required.
+        </p>
+        <p className="text-[11px] text-parchment/50 pt-1">
+          <strong>Note on Session Stability Ratio:</strong> This experimental indicator represents a normalized demonstration score derived from event frequency relative to observation duration <span className="font-mono">(100 - [events / minutes] &times; 15)</span>. It is an algorithmic heuristic for demonstration purposes and is NOT a certified or clinically validated measure of driver fitness.
         </p>
       </div>
     </div>

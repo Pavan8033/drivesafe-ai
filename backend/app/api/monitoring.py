@@ -120,6 +120,11 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
             else:
                 continue
 
+            # Bounded payload security ceiling (5 MB max)
+            if len(frame_data) > 5 * 1024 * 1024:
+                logger.warning(f"Frame payload rejected: {len(frame_data)} bytes exceeds 5MB ceiling")
+                continue
+
             # Process frame
             start_proc_time = time.perf_counter()
             now_epoch = time.time()
