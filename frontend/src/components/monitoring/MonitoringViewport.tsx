@@ -18,6 +18,7 @@ import { soundAlert } from '../../lib/soundAlert';
 import { voiceCoPilot } from '../../lib/voiceCoPilot';
 import { loadMonitoringConfig } from '../../lib/settingsStorage';
 import { AudioWaveformVisualizer } from './AudioWaveformVisualizer';
+import { edgeVisionEngine } from '../../lib/edgeVisionEngine';
 import type {
   MonitoringTelemetry,
   DetectionState,
@@ -31,17 +32,27 @@ interface MonitoringViewportProps {
   isSoundMuted?: boolean;
 }
 
-const getWsUrl = () => {
+const getWsUrl = (): string | null => {
   const envUrl = import.meta.env.VITE_WS_BASE_URL;
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname || '127.0.0.1';
-    if (envUrl && envUrl.includes('localhost') && host === '127.0.0.1') {
-      return envUrl.replace('localhost', '127.0.0.1');
+    const host = window.location.hostname || '';
+    const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+
+    if (isLocalhost) {
+      if (envUrl && envUrl.includes('localhost') && host === '127.0.0.1') {
+        return envUrl.replace('localhost', '127.0.0.1');
+      }
+      return envUrl || 'ws://127.0.0.1:8000/ws/monitor';
     }
-    if (envUrl) return envUrl;
-    return `ws://${host}:8000/ws/monitor`;
+
+    // On remote domain (e.g. Vercel), only attempt WS if an explicit remote URL is set
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl;
+    }
+
+    return null;
   }
-  return envUrl || 'ws://127.0.0.1:8000/ws/monitor';
+  return envUrl || null;
 };
 
 const TARGET_FPS = 10;
@@ -242,12 +253,21 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
     }
   };
 
-  const startWebSocket = (): Promise<boolean> => {
+  const startWebSocket = (wsUrl: string | null): Promise<boolean> => {
+    if (!wsUrl) {
+      setBackendState({
+        isConnected: false,
+        isConnecting: false,
+        error: null,
+        isModelReady: true,
+      });
+      return Promise.resolve(false);
+    }
+
     return new Promise((resolve) => {
       setBackendState((prev) => ({ ...prev, isConnecting: true, error: null }));
 
       try {
-        const wsUrl = getWsUrl();
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
@@ -291,13 +311,12 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
           }
         };
 
-        ws.onerror = (err) => {
-          console.error('WebSocket connection error:', err);
+        ws.onerror = () => {
           setBackendState((prev) => ({
             ...prev,
             isConnected: false,
             isConnecting: false,
-            error: 'Cannot connect to DriveSafe AI Vision Backend.',
+            error: null,
           }));
           resolve(false);
         };
@@ -309,13 +328,12 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
             isConnecting: false,
           }));
         };
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
+      } catch {
         setBackendState({
           isConnected: false,
           isConnecting: false,
-          error: msg,
-          isModelReady: false,
+          error: null,
+          isModelReady: true,
         });
         resolve(false);
       }
@@ -328,8 +346,7 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
     }
 
     captureIntervalRef.current = window.setInterval(() => {
-      if (!videoRef.current || !canvasRef.current || !wsRef.current) return;
-      if (wsRef.current.readyState !== WebSocket.OPEN) return;
+      if (!videoRef.current || !canvasRef.current) return;
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -349,15 +366,27 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      const base64Data = canvas.toDataURL('image/jpeg', 0.65);
+      // 1. If backend WebSocket is connected, stream to Python FastAPI server
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        const base64Data = canvas.toDataURL('image/jpeg', 0.65);
+        wsRef.current.send(
+          JSON.stringify({
+            action: 'frame',
+            frame: base64Data,
+            timestamp: Date.now(),
+          })
+        );
+      } else {
+        // 2. Otherwise run In-Browser Edge Vision Telemetry (Client-Side MediaPipe Engine)
+        const edgeTel = edgeVisionEngine.processVideoFrame(video, canvas, activeConfig);
+        lastFrameReceivedTimeRef.current = Date.now();
+        setLatestTelemetry(edgeTel);
+        onTelemetryUpdate(edgeTel);
 
-      wsRef.current.send(
-        JSON.stringify({
-          action: 'frame',
-          frame: base64Data,
-          timestamp: Date.now(),
-        })
-      );
+        if (edgeTel.ear !== null) {
+          processAdaptiveBaseline(edgeTel.ear, edgeTel.status);
+        }
+      }
     }, FRAME_INTERVAL_MS);
   };
 
@@ -379,13 +408,17 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
     const cameraSuccess = await startCamera();
     if (!cameraSuccess) return;
 
-    // Immediately connect WebSocket and start real-time telemetry analysis
-    const wsSuccess = await startWebSocket();
-    if (!wsSuccess) {
-      stopCamera();
-      return;
+    // Initialize edge vision in background for immediate responsiveness
+    edgeVisionEngine.initialize().catch(() => {});
+    edgeVisionEngine.resetSession();
+
+    // Check backend connection in background if available
+    const wsUrl = getWsUrl();
+    if (wsUrl) {
+      startWebSocket(wsUrl).catch(() => {});
     }
 
+    // Camera is active! Begin real-time monitoring immediately
     setIsMonitoring(true);
     startCaptureLoop();
   };
@@ -398,9 +431,22 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ action: 'stop' }));
+    } else {
+      const summary: SessionSummary = {
+        session_id: `session_${Date.now()}`,
+        start_timestamp: new Date().toISOString(),
+        end_timestamp: new Date().toISOString(),
+        duration_seconds: latestTelemetry?.session_duration_seconds || 0,
+        drowsiness_event_count: latestTelemetry?.event_count || 0,
+        possible_yawning_event_count: 0,
+        session_status: 'COMPLETED',
+        events: [],
+      };
+      onSessionComplete(summary);
     }
 
     setIsMonitoring(false);
+    setCameraPermission('idle');
     setLatestTelemetry(null);
     setIsAlarmAcknowledged(false);
   };
@@ -467,6 +513,7 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
       <div className="relative aspect-[4/3] sm:aspect-video w-full bg-obsidian flex items-center justify-center overflow-hidden">
         <video
           ref={videoRef}
+          autoPlay
           playsInline
           muted
           className={`w-full h-full object-cover transform -scale-x-100 transition-all ${
@@ -570,7 +617,7 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
                 )}
                 <span className="text-parchment/30">&bull;</span>
                 <span className="text-parchment/80 font-sans text-[10px] sm:text-[11px]">
-                  {backendState.isConnected ? 'Online' : 'Offline'}
+                  {backendState.isConnected ? 'Cloud Vision' : 'Edge Vision'}
                 </span>
               </div>
             </div>
