@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/common/BrandLogo';
+
+const CURRENT_YEAR = new Date().getFullYear();
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +22,6 @@ export const LoginPage: React.FC = () => {
     signInWithGoogle,
     loginAsDemoUser,
     resetPassword,
-    isFirebaseConfigured,
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -297,7 +298,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Footer Notice */}
       <div className="text-center text-[11px] text-parchment/40 font-mono relative z-10">
-        &copy; {new Date().getFullYear()} DriveSafe AI &bull; Vigilance &amp; Heritage
+        &copy; {CURRENT_YEAR} DriveSafe AI &bull; Vigilance &amp; Heritage
       </div>
     </div>
   );

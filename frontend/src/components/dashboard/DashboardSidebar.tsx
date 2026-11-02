@@ -7,7 +7,6 @@ import {
   BarChart3,
   Sliders,
   ArrowLeft,
-  User,
 } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 import { useAuth } from '../../context/AuthContext';

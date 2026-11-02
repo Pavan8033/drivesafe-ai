@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  BarChart3,
-  TrendingUp,
-  Clock,
-  AlertTriangle,
-  Compass,
-  Calendar,
-  ChevronDown,
-  Activity,
-  Eye,
-} from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getUserSessions } from '../lib/sessionStorage';
 import type { SessionSummary } from '../types/session';
@@ -18,17 +8,19 @@ export const InsightsPage: React.FC = () => {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [timeRange, setTimeRange] = useState('Last 30 Days');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     if (user?.uid) {
       getUserSessions(user.uid).then((data) => {
-        setSessions(data);
-        setLoading(false);
+        if (isMounted) {
+          setSessions(data);
+        }
       });
-    } else {
-      setLoading(false);
     }
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   // Derived or representative metrics matching reference screen

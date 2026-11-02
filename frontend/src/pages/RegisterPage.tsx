@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, User, ShieldCheck, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/common/BrandLogo';
+
+const CURRENT_YEAR = new Date().getFullYear();
 
 export const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -17,7 +19,6 @@ export const RegisterPage: React.FC = () => {
     signUpWithEmail,
     signInWithGoogle,
     loginAsDemoUser,
-    isFirebaseConfigured,
   } = useAuth();
   const navigate = useNavigate();
 
@@ -242,6 +243,15 @@ export const RegisterPage: React.FC = () => {
           <span>Continue with Google</span>
         </button>
 
+        {/* Demo Mode Button */}
+        <button
+          type="button"
+          onClick={handleDemoSignIn}
+          className="w-full py-2.5 rounded bg-emerald/20 hover:bg-emerald/30 border border-champagne/30 text-champagne text-xs font-medium flex items-center justify-center gap-2 transition-colors"
+        >
+          <span>Continue in Demo Mode (Alex Carter)</span>
+        </button>
+
         {/* Sign In Link */}
         <div className="text-center text-xs text-parchment/60 font-sans">
           Already have an account?{' '}
@@ -253,7 +263,7 @@ export const RegisterPage: React.FC = () => {
 
       {/* Footer Notice */}
       <div className="text-center text-[11px] text-parchment/40 font-mono relative z-10">
-        &copy; {new Date().getFullYear()} DriveSafe AI &bull; Vigilance &amp; Heritage
+        &copy; {CURRENT_YEAR} DriveSafe AI &bull; Vigilance &amp; Heritage
       </div>
     </div>
   );

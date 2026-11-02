@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Award, Printer, ShieldCheck, CheckCircle2, FileText, Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { X, Award, Printer, ShieldCheck, FileText } from 'lucide-react';
 import type { SessionSummary } from '../../types/session';
 import type { MonitoringTelemetry } from '../../types/monitoring';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, LogOut, ShieldCheck, User } from 'lucide-react';
+import { Volume2, VolumeX, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { soundAlert } from '../../lib/soundAlert';
 

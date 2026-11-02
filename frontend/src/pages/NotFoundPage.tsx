@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Compass, ArrowLeft } from 'lucide-react';
 import { BrandLogo } from '../components/common/BrandLogo';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export const NotFoundPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-ivory text-ink flex flex-col justify-between p-8 md:p-16">
@@ -46,7 +48,7 @@ export const NotFoundPage: React.FC = () => {
       </div>
 
       <div className="text-center text-xs text-ink-muted font-mono">
-        &copy; {new Date().getFullYear()} DriveSafe AI Telemetry
+        &copy; {CURRENT_YEAR} DriveSafe AI Telemetry
       </div>
     </div>
   );

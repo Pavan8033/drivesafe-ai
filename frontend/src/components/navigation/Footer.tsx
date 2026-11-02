@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Eye, Lock, Terminal, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export const Footer: React.FC = () => {
-  const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -171,7 +172,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar: Copyright & Disclaimers */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-parchment/50 font-sans">
           <div>
-            &copy; {currentYear} DriveSafe AI &bull; Kalasalingam Academy of Research and Education &bull; Dept. of Mechanical Engineering &bull; Team 8 (Design Build)
+            &copy; {CURRENT_YEAR} DriveSafe AI &bull; Kalasalingam Academy of Research and Education &bull; Dept. of Mechanical Engineering &bull; Team 8 (Design Build)
           </div>
 
           <div className="flex items-center gap-6">

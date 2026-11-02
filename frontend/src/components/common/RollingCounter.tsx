@@ -18,17 +18,17 @@ export const RollingCounter: React.FC<RollingCounterProps> = ({
   className = '',
 }) => {
   const [displayValue, setDisplayValue] = useState<number>(value);
-  const startValRef = useRef<number>(value);
+  const currentValRef = useRef<number>(value);
   const targetValRef = useRef<number>(value);
   const startTimeRef = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
-    startValRef.current = displayValue;
+    const fromVal = currentValRef.current;
     targetValRef.current = value;
     startTimeRef.current = null;
 
-    if (startValRef.current === targetValRef.current) return;
+    if (fromVal === value) return;
 
     const animate = (currentTime: number) => {
       if (!startTimeRef.current) startTimeRef.current = currentTime;
@@ -37,13 +37,15 @@ export const RollingCounter: React.FC<RollingCounterProps> = ({
 
       // Smooth cubic-out easing
       const eased = 1 - Math.pow(1 - progress, 3);
-      const current = startValRef.current + (targetValRef.current - startValRef.current) * eased;
+      const current = fromVal + (targetValRef.current - fromVal) * eased;
+      currentValRef.current = current;
 
       setDisplayValue(current);
 
       if (progress < 1) {
         frameRef.current = requestAnimationFrame(animate);
       } else {
+        currentValRef.current = targetValRef.current;
         setDisplayValue(targetValRef.current);
       }
     };

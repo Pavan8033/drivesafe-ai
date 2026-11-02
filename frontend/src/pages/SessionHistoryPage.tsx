@@ -1,15 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  History,
   Trash2,
   Eye,
   Calendar,
-  Clock,
-  AlertTriangle,
   RefreshCw,
   X,
-  FileText,
   ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -25,7 +21,7 @@ export const SessionHistoryPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedSession, setSelectedSession] = useState<SessionSummary | null>(null);
 
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     if (!user?.uid) {
       setLoading(false);
       return;
@@ -34,11 +30,11 @@ export const SessionHistoryPage: React.FC = () => {
     const data = await getUserSessions(user.uid);
     setSessions(data);
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchSessions();
-  }, [user]);
+  }, [fetchSessions]);
 
   const handleDelete = async (sessionId: string) => {
     if (!user?.uid) return;

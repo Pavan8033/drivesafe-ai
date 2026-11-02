@@ -6,13 +6,7 @@ import {
   AlertTriangle,
   Activity,
   History,
-  ShieldCheck,
   ChevronDown,
-  ChevronRight,
-  Sparkles,
-  Server,
-  Calendar,
-  Volume2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MetricCard } from '../components/dashboard/MetricCard';
@@ -26,7 +20,6 @@ export const DashboardOverviewPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [timeRange, setTimeRange] = useState<string>('Last 7 Days');
   const [engineHealth, setEngineHealth] = useState<{
     status: string;
@@ -35,33 +28,39 @@ export const DashboardOverviewPage: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     // 1. Fetch user sessions
     if (user?.uid) {
       getUserSessions(user.uid).then((data) => {
-        setSessions(data);
-        setLoading(false);
+        if (isMounted) setSessions(data);
       });
-    } else {
-      setLoading(false);
     }
 
     // 2. Fetch FastAPI backend health
     fetch(`${API_BASE}/api/health`)
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        setEngineHealth({
-          status: data.status,
-          modelLoaded: data.model_loaded,
-          version: data.version,
-        });
+        if (data && isMounted) {
+          setEngineHealth({
+            status: data.status,
+            modelLoaded: data.model_loaded,
+            version: data.version,
+          });
+        }
       })
       .catch(() => {
-        setEngineHealth({
-          status: 'STANDBY',
-          modelLoaded: false,
-          version: '1.0.0',
-        });
+        if (isMounted) {
+          setEngineHealth({
+            status: 'STANDBY',
+            modelLoaded: false,
+            version: '1.0.0',
+          });
+        }
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   // Real calculations derived from actual recorded sessions
@@ -111,9 +110,34 @@ export const DashboardOverviewPage: React.FC = () => {
           <h1 className="font-serif text-3xl font-medium text-ivory">
             Dashboard
           </h1>
-          <p className="text-xs text-parchment/60 font-sans mt-0.5">
-            Your driving vigilance at a glance.
-          </p>
+          <div className="flex items-center gap-2.5 mt-0.5">
+            <span className="text-xs text-parchment/60 font-sans">
+              Your driving vigilance at a glance.
+            </span>
+            {engineHealth && (
+              <span
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                  engineHealth.status === 'HEALTHY' || engineHealth.modelLoaded
+                    ? 'bg-emerald-950/60 text-emerald-400 border-emerald-500/40'
+                    : 'bg-amber-950/60 text-amber-400 border-amber-500/40'
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    engineHealth.status === 'HEALTHY' || engineHealth.modelLoaded
+                      ? 'bg-emerald-400 animate-pulse'
+                      : 'bg-amber-400'
+                  }`}
+                />
+                <span>
+                  Vision Engine{' '}
+                  {engineHealth.status === 'HEALTHY' || engineHealth.modelLoaded
+                    ? 'Online'
+                    : 'Standby'}
+                </span>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Time Filter Dropdown */}

@@ -10,9 +10,7 @@ import {
   Activity,
   Bell,
   Moon,
-  Sparkles,
   RefreshCw,
-  CheckCircle,
 } from 'lucide-react';
 import { PrimaryButton } from '../common/PrimaryButton';
 import { StatusBadge } from '../common/StatusBadge';
@@ -58,7 +56,7 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const captureIntervalRef = useRef<number | null>(null);
-  const lastFrameReceivedTimeRef = useRef<number>(Date.now());
+  const lastFrameReceivedTimeRef = useRef<number>(0);
 
   const [isMonitoring, setIsMonitoring] = useState<boolean>(false);
 
@@ -95,7 +93,6 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
     soundAlert.autoMaximizeVolume();
     soundAlert.setVolume(1.0);
     soundAlert.setMuted(false);
-    setIsMutedInternal(false);
     voiceCoPilot.setEnabled(activeConfig.voice_copilot_enabled ?? true);
   }, [activeConfig.voice_copilot_enabled]);
 
@@ -106,7 +103,7 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
       return;
     }
     const interval = window.setInterval(() => {
-      if (Date.now() - lastFrameReceivedTimeRef.current > 2500) {
+      if (lastFrameReceivedTimeRef.current > 0 && Date.now() - lastFrameReceivedTimeRef.current > 2500) {
         setIsTelemetryStale(true);
       } else {
         setIsTelemetryStale(false);
@@ -151,7 +148,9 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
     } else {
       // Driver recovered or hazard condition cleared
       soundAlert.stopRepeatingAlarm();
-      setIsAlarmAcknowledged(false);
+      if (isAlarmAcknowledged) {
+        setIsAlarmAcknowledged(false);
+      }
     }
   }, [latestTelemetry, isMutedInternal, isAlarmAcknowledged, isMonitoring]);
 

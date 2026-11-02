@@ -86,7 +86,7 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
                 except Exception:
                     continue
 
-                action = payload.get("action")
+                action = payload.get("action") or payload.get("type")
 
                 if action == "ping":
                     await websocket.send_text(json.dumps({"type": "pong"}))
@@ -118,7 +118,7 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
                     )
                     continue
 
-                elif action == "start":
+                elif action in ("start", "reset"):
                     # Initialize or reset session
                     custom_id = payload.get("session_id")
                     session = MonitoringSession(custom_id)
@@ -130,7 +130,7 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
                     await websocket.send_text(
                         json.dumps(
                             {
-                                "type": "session_started",
+                                "type": "session_started" if action == "start" else "reset_ok",
                                 "session_id": session.session_id,
                                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                             }
@@ -152,7 +152,7 @@ async def websocket_monitor_endpoint(websocket: WebSocket):
                     continue
 
                 elif action == "frame":
-                    frame_data = payload.get("frame")
+                    frame_data = payload.get("frame") or payload.get("image")
                     if not frame_data:
                         continue
                 else:

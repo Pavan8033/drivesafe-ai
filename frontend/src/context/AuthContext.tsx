@@ -29,7 +29,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const DEMO_USER_STORAGE_KEY = 'drivesafe_demo_user';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined' && !isFirebaseConfigured) {
+      const saved = localStorage.getItem(DEMO_USER_STORAGE_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -50,15 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       return () => unsubscribe();
     } else {
-      // Check for saved demo user session in local storage
-      const savedDemo = localStorage.getItem(DEMO_USER_STORAGE_KEY);
-      if (savedDemo) {
-        try {
-          setUser(JSON.parse(savedDemo));
-        } catch {
-          setUser(null);
-        }
-      }
       setLoading(false);
     }
   }, []);
