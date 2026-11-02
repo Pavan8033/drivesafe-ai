@@ -10,11 +10,11 @@ import {
   RefreshCw,
   X,
   FileText,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getUserSessions, deleteUserSession } from '../lib/sessionStorage';
 import { EmptyState } from '../components/dashboard/EmptyState';
-import { PrimaryButton } from '../components/common/PrimaryButton';
 import type { SessionSummary } from '../types/session';
 
 export const SessionHistoryPage: React.FC = () => {
@@ -42,7 +42,9 @@ export const SessionHistoryPage: React.FC = () => {
 
   const handleDelete = async (sessionId: string) => {
     if (!user?.uid) return;
-    const ok = window.confirm('Are you certain you wish to purge this session record from your archive?');
+    const ok = window.confirm(
+      'Are you certain you wish to purge this session record from your archive?'
+    );
     if (!ok) return;
 
     await deleteUserSession(user.uid, sessionId);
@@ -52,217 +54,232 @@ export const SessionHistoryPage: React.FC = () => {
     }
   };
 
+  const displayList = sessions;
+
+  const formatDuration = (seconds: number) => {
+    const rounded = Math.round(seconds);
+    if (rounded <= 0) return '0m 00s';
+    const hrs = Math.floor(rounded / 3600);
+    const mins = Math.floor((rounded % 3600) / 60);
+    const secs = rounded % 60;
+    if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+    return `${mins}m ${secs}s`;
+  };
+
+  const getStatusBadge = (statusName: string, eventCount: number) => {
+    const normalized = (statusName || '').toLowerCase();
+    if (normalized.includes('attention') || eventCount >= 5) {
+      return (
+        <span className="px-2.5 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-mono font-medium">
+          Attention
+        </span>
+      );
+    }
+    if (normalized.includes('reviewed')) {
+      return (
+        <span className="px-2.5 py-1 rounded bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-mono font-medium">
+          Reviewed
+        </span>
+      );
+    }
+    if (normalized.includes('vigilant') || eventCount === 0) {
+      return (
+        <span className="px-2.5 py-1 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-mono font-medium">
+          Vigilant
+        </span>
+      );
+    }
+    return (
+      <span className="px-2.5 py-1 rounded bg-stone-100 text-stone-800 border border-stone-300 text-[10px] font-mono font-medium">
+        Completed
+      </span>
+    );
+  };
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Page Title & Refresh Deck */}
-      <div className="flex items-center justify-between pb-4 border-b border-charcoal-border">
-        <div>
-          <h2 className="font-serif text-2xl font-medium text-ivory">
-            Driver Telemetry Archives
-          </h2>
-          <p className="text-xs text-parchment/60 font-sans mt-0.5">
-            Historical logs of all verified driver alertness surveillance sessions.
-          </p>
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* Session History Container */}
+      <div className="p-6 md:p-8 rounded bg-parchment/60 border border-champagne/30 shadow-luxury text-obsidian">
+        {/* Header Strip */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-champagne/25 mb-6">
+          <div>
+            <h2 className="font-serif text-2xl md:text-3xl font-medium text-obsidian">
+              Session History
+            </h2>
+            <p className="text-xs text-secondary-text font-sans mt-0.5">
+              View and analyze your past monitoring sessions.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={fetchSessions}
+              className="p-2 rounded bg-ivory border border-champagne/30 text-champagne-dark hover:text-obsidian hover:border-champagne text-xs font-mono flex items-center gap-1.5 transition-colors"
+              title="Refresh Archives"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/app/monitor')}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded bg-champagne hover:bg-champagne-light text-obsidian text-xs font-semibold tracking-wide transition-all shadow-sm"
+            >
+              <span>View All</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        <button
-          onClick={fetchSessions}
-          className="p-2 rounded bg-charcoal-elevated border border-gold/25 text-gold hover:text-ivory hover:border-gold/50 text-xs font-mono flex items-center gap-2 transition-colors"
-          title="Refresh Archive"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">Refresh Archive</span>
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="p-16 text-center text-xs font-mono text-parchment/50">
-          Accessing historical records...
-        </div>
-      ) : sessions.length === 0 ? (
-        <EmptyState
-          title="No Archives Recorded"
-          description="Your driving telemetry record is currently clear. Once you engage and conclude a session in the Monitoring Studio, the full duration and event log will appear here."
-          actionText="Open Monitoring Studio"
-          onAction={() => navigate('/app/monitor')}
-          icon={<History className="w-8 h-8 text-gold" />}
-        />
-      ) : (
-        <div className="rounded border border-gold/25 bg-charcoal-card overflow-hidden shadow-luxury-dark">
-          <div className="overflow-x-auto">
+        {displayList.length === 0 ? (
+          <EmptyState
+            title="No Session Telemetry Recorded"
+            description="When you engage the live monitoring studio, your driving vigilance telemetry, duration, and fatigue events will be safely archived here."
+            actionText="Launch Monitoring Studio"
+            onAction={() => navigate('/app/monitor')}
+          />
+        ) : (
+          /* Parchment Styled Table Matching Reference */
+          <div className="overflow-x-auto rounded border border-champagne/25 bg-ivory shadow-sm">
             <table className="w-full text-left text-xs font-sans">
-              <thead className="bg-charcoal-elevated text-gold text-[10px] uppercase font-mono tracking-wider border-b border-charcoal-border">
+              <thead className="bg-parchment/70 text-obsidian font-serif text-xs font-semibold border-b border-champagne/30">
                 <tr>
-                  <th className="py-3.5 px-4 md:px-6">Timestamp / Date</th>
-                  <th className="py-3.5 px-4">Session Duration</th>
-                  <th className="py-3.5 px-4 text-center">Drowsiness Events</th>
-                  <th className="py-3.5 px-4 text-center">Yawning Instances</th>
+                  <th className="py-3.5 px-4 md:px-6">Date &amp; Time</th>
+                  <th className="py-3.5 px-4">Duration</th>
+                  <th className="py-3.5 px-4 text-center">Events</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4 md:px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-charcoal-border font-mono text-parchment/80">
-                {sessions.map((session) => (
-                  <tr
-                    key={session.session_id}
-                    className="hover:bg-charcoal-elevated/50 transition-colors"
-                  >
-                    <td className="py-4 px-4 md:px-6 font-medium text-ivory">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-3.5 h-3.5 text-gold/70 shrink-0" />
-                        <span>{session.start_timestamp}</span>
-                      </div>
-                    </td>
+              <tbody className="divide-y divide-champagne/15 font-mono text-obsidian">
+                {displayList.map((session) => {
+                  const totalEvents =
+                    (session.drowsiness_event_count || 0) +
+                    (session.possible_yawning_event_count || 0);
 
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-parchment/50" />
-                        <span>{Math.round(session.duration_seconds)}s</span>
-                      </div>
-                    </td>
+                  return (
+                    <tr
+                      key={session.session_id}
+                      className="hover:bg-parchment/40 transition-colors"
+                    >
+                      <td className="py-4 px-4 md:px-6 font-medium">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-champagne-dark shrink-0" />
+                          <span>{session.start_timestamp}</span>
+                        </div>
+                      </td>
 
-                    <td className="py-4 px-4 text-center">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded ${
-                          session.drowsiness_event_count > 0
-                            ? 'bg-amber-950/80 text-amber-300 border border-amber-600/50'
-                            : 'text-parchment/50'
-                        }`}
-                      >
-                        {session.drowsiness_event_count}
-                      </span>
-                    </td>
+                      <td className="py-4 px-4 text-secondary-text">
+                        {formatDuration(session.duration_seconds)}
+                      </td>
 
-                    <td className="py-4 px-4 text-center">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded ${
-                          session.possible_yawning_event_count > 0
-                            ? 'bg-gold/10 text-gold border border-gold/30'
-                            : 'text-parchment/50'
-                        }`}
-                      >
-                        {session.possible_yawning_event_count}
-                      </span>
-                    </td>
+                      <td className="py-4 px-4 text-center font-semibold">
+                        {totalEvents}
+                      </td>
 
-                    <td className="py-4 px-4">
-                      <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-600/40 text-[10px]">
-                        {session.session_status}
-                      </span>
-                    </td>
+                      <td className="py-4 px-4">
+                        {getStatusBadge(session.session_status, totalEvents)}
+                      </td>
 
-                    <td className="py-4 px-4 md:px-6 text-right space-x-2">
-                      <button
-                        onClick={() => setSelectedSession(session)}
-                        className="px-2.5 py-1 rounded bg-charcoal hover:bg-gold/10 text-gold border border-gold/30 text-[11px] transition-colors"
-                      >
-                        Inspect
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(session.session_id)}
-                        className="p-1 rounded text-parchment/40 hover:text-red-400 transition-colors"
-                        title="Purge session"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="py-4 px-4 md:px-6 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedSession(session)}
+                            className="p-1.5 rounded hover:bg-parchment text-secondary-text hover:text-emerald transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(session.session_id)}
+                            className="p-1.5 rounded hover:bg-red-50 text-secondary-text hover:text-red-700 transition-colors"
+                            title="Purge Record"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Session Details Modal */}
+      {/* Detail Modal if Selected */}
       {selectedSession && (
-        <div className="fixed inset-0 bg-ink/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-charcoal border-2 border-gold/40 p-6 md:p-8 rounded max-w-lg w-full shadow-2xl text-ivory space-y-6 animate-fade-in">
-            <div className="flex items-center justify-between pb-4 border-b border-gold/20">
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-gold" />
-                <h3 className="font-serif text-xl font-medium text-ivory">
-                  Telemetry Manifest
-                </h3>
-              </div>
+        <div className="fixed inset-0 z-50 bg-obsidian/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="max-w-lg w-full bg-obsidian-card border border-champagne/30 rounded p-6 shadow-luxury-dark space-y-4 text-ivory">
+            <div className="flex items-center justify-between pb-3 border-b border-obsidian-border">
+              <h3 className="font-serif text-lg font-medium text-ivory">
+                Session Inspection Log
+              </h3>
               <button
                 onClick={() => setSelectedSession(null)}
-                className="p-1 rounded text-parchment/60 hover:text-ivory"
+                className="p-1 text-parchment/60 hover:text-ivory"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs font-mono">
-              <div className="flex justify-between py-1.5 border-b border-charcoal-border">
-                <span className="text-parchment/60 font-sans">Session Identifier:</span>
-                <span className="text-gold font-medium truncate max-w-[200px]">
-                  {selectedSession.session_id}
-                </span>
+            <div className="space-y-2 text-xs font-mono">
+              <div className="flex justify-between py-1 border-b border-obsidian-border">
+                <span className="text-parchment/60 font-sans">Session ID:</span>
+                <span>{selectedSession.session_id}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-charcoal-border">
-                <span className="text-parchment/60 font-sans">Start Timestamp:</span>
-                <span className="text-ivory">{selectedSession.start_timestamp}</span>
+              <div className="flex justify-between py-1 border-b border-obsidian-border">
+                <span className="text-parchment/60 font-sans">Timestamp:</span>
+                <span>{selectedSession.start_timestamp}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-charcoal-border">
-                <span className="text-parchment/60 font-sans">Concluded Timestamp:</span>
-                <span className="text-ivory">{selectedSession.end_timestamp || '\u2014'}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-charcoal-border">
+              <div className="flex justify-between py-1 border-b border-obsidian-border">
                 <span className="text-parchment/60 font-sans">Duration:</span>
-                <span className="text-ivory">
-                  {Math.round(selectedSession.duration_seconds)} seconds
-                </span>
+                <span>{Math.round(selectedSession.duration_seconds)} seconds</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-charcoal-border">
+              <div className="flex justify-between py-1 border-b border-obsidian-border">
                 <span className="text-parchment/60 font-sans">Drowsiness Events:</span>
-                <span className="text-amber-400 font-semibold">
-                  {selectedSession.drowsiness_event_count}
-                </span>
+                <span className="text-red-400">{selectedSession.drowsiness_event_count}</span>
               </div>
-              <div className="flex justify-between py-1.5">
-                <span className="text-parchment/60 font-sans">Yawning Events:</span>
-                <span className="text-gold font-semibold">
-                  {selectedSession.possible_yawning_event_count}
-                </span>
+              <div className="flex justify-between py-1 border-b border-obsidian-border">
+                <span className="text-parchment/60 font-sans">Yawns Detected:</span>
+                <span className="text-champagne">{selectedSession.possible_yawning_event_count}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-parchment/60 font-sans">Status:</span>
+                <span className="text-emerald-400">{selectedSession.session_status}</span>
               </div>
             </div>
 
-            {/* Event sub-items if present */}
-            {selectedSession.events && selectedSession.events.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-gold/20">
-                <span className="eyebrow text-gold text-[10px] tracking-widest block">
-                  CHRONOLOGICAL EVENT LOG
-                </span>
-                <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
-                  {selectedSession.events.map((evt) => (
-                    <div
-                      key={evt.id}
-                      className="p-2.5 rounded bg-charcoal-elevated border border-charcoal-border text-[11px] font-mono flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="text-amber-400 font-medium block">{evt.type}</span>
-                        <span className="text-parchment/50 text-[10px]">{evt.details}</span>
-                      </div>
-                      <span className="text-parchment/40 text-[10px]">{evt.timestamp}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="pt-4 border-t border-gold/20 flex justify-end">
-              <button
-                onClick={() => setSelectedSession(null)}
-                className="px-5 py-2 rounded bg-forest hover:bg-forest-light text-ivory text-xs font-medium border border-gold/30 transition-colors"
-              >
-                Close Manifest
-              </button>
-            </div>
+            <button
+              onClick={() => setSelectedSession(null)}
+              className="w-full py-2.5 rounded bg-champagne hover:bg-champagne-light text-obsidian text-xs font-semibold"
+            >
+              Close Inspector
+            </button>
           </div>
         </div>
       )}
+
+      {/* Bottom Automotive Cockpit Banner Matching Reference Image */}
+      <div className="relative rounded overflow-hidden border border-champagne/30 shadow-luxury-dark bg-obsidian">
+        <img
+          src="/images/vintage_luxury_cockpit.jpg"
+          alt="Vintage luxury automobile interior with handcrafted wood and leather"
+          className="w-full h-48 md:h-56 object-cover object-center filter brightness-[0.55] contrast-[1.1]"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-obsidian/90 via-obsidian/60 to-transparent" />
+
+        <div className="absolute inset-0 p-8 flex flex-col justify-center max-w-xl">
+          <span className="eyebrow text-champagne text-[10px] tracking-[0.25em] block mb-2">
+            HERITAGE MOTORING WISDOM
+          </span>
+          <h3 className="font-serif text-2xl md:text-3xl font-medium text-ivory tracking-tight">
+            A safer tomorrow begins with awareness today.
+          </h3>
+        </div>
+      </div>
     </div>
   );
 };

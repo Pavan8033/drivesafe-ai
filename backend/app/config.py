@@ -17,10 +17,13 @@ class Settings(BaseModel):
     # Path to face landmarker model
     MODEL_PATH: str = os.getenv("MODEL_PATH", str(BASE_DIR / "models" / "face_landmarker.task"))
 
-    # Configurable detection parameters
-    DEFAULT_EAR_THRESHOLD: float = float(os.getenv("DEFAULT_EAR_THRESHOLD", "0.20"))
-    PROLONGED_CLOSURE_SECONDS: float = float(os.getenv("PROLONGED_CLOSURE_SECONDS", "1.5"))
-    EAR_REOPEN_THRESHOLD: float = float(os.getenv("EAR_REOPEN_THRESHOLD", "0.23"))
+    # Configurable detection parameters (Production Defaults)
+    DEFAULT_EAR_THRESHOLD: float = float(os.getenv("DEFAULT_EAR_THRESHOLD", "0.12"))
+    PROLONGED_CLOSURE_SECONDS: float = float(os.getenv("PROLONGED_CLOSURE_SECONDS", "0.8"))
+    EAR_REOPEN_THRESHOLD: float = float(os.getenv("EAR_REOPEN_THRESHOLD", "0.15"))
+    HEAD_AWAY_SECONDS: float = float(os.getenv("HEAD_AWAY_SECONDS", "1.0"))
+    YAW_THRESHOLD_DEG: float = float(os.getenv("YAW_THRESHOLD_DEG", "12.0"))
+    PITCH_THRESHOLD_DEG: float = float(os.getenv("PITCH_THRESHOLD_DEG", "12.0"))
     MAR_THRESHOLD: float = float(os.getenv("MAR_THRESHOLD", "0.65"))
     YAWN_MIN_SECONDS: float = float(os.getenv("YAWN_MIN_SECONDS", "2.0"))
     MAX_FPS: int = int(os.getenv("MAX_FPS", "10"))

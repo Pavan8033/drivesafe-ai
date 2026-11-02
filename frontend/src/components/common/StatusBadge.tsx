@@ -43,8 +43,23 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       bg: 'bg-red-950/90 text-red-200 border-red-500 animate-pulse',
       dot: 'bg-red-400',
     },
+    HEAD_AWAY: {
+      label: 'Head Turned Away',
+      bg: 'bg-amber-950/80 text-amber-200 border-amber-500/50',
+      dot: 'bg-amber-400',
+    },
+    SUSTAINED_HEAD_AWAY: {
+      label: 'Sustained Head-Away',
+      bg: 'bg-red-950/90 text-red-200 border-red-500 animate-pulse',
+      dot: 'bg-red-400',
+    },
+    RECOVERING: {
+      label: 'Driver Recovering',
+      bg: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50',
+      dot: 'bg-emerald-400',
+    },
     NO_FACE: {
-      label: 'No Face Detected',
+      label: 'Waiting For Face',
       bg: 'bg-stone-900/80 text-stone-400 border-stone-700/60',
       dot: 'bg-stone-500',
     },

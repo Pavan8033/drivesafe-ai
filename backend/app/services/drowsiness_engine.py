@@ -1,7 +1,8 @@
 """Temporal Driver Drowsiness Detection Engine.
 
 Implements stateful temporal analysis of eye closures to distinguish normal blinks
-from hazardous prolonged eyelid closures, with hysteresis and event deduplication.
+from hazardous prolonged eyelid closures, with hysteresis, recovery state transition,
+and event deduplication.
 """
 
 from typing import Optional, Tuple
@@ -13,9 +14,9 @@ class DrowsinessEngine:
 
     def __init__(
         self,
-        ear_threshold: float = 0.20,
-        prolonged_closure_seconds: float = 1.5,
-        ear_reopen_threshold: float = 0.23,
+        ear_threshold: float = 0.12,
+        prolonged_closure_seconds: float = 0.8,
+        ear_reopen_threshold: float = 0.15,
     ):
         self.ear_threshold = ear_threshold
         self.prolonged_closure_seconds = prolonged_closure_seconds
@@ -25,6 +26,21 @@ class DrowsinessEngine:
         self.closure_start_timestamp: Optional[float] = None
         self.event_triggered_this_closure: bool = False
         self.last_known_ear: Optional[float] = None
+        self.was_drowsy_episode: bool = False
+
+    def configure(
+        self,
+        ear_threshold: Optional[float] = None,
+        prolonged_closure_seconds: Optional[float] = None,
+        ear_reopen_threshold: Optional[float] = None,
+    ):
+        """Update detection thresholds dynamically."""
+        if ear_threshold is not None:
+            self.ear_threshold = float(ear_threshold)
+        if prolonged_closure_seconds is not None:
+            self.prolonged_closure_seconds = float(prolonged_closure_seconds)
+        if ear_reopen_threshold is not None:
+            self.ear_reopen_threshold = float(ear_reopen_threshold)
 
     def update(
         self,
@@ -50,6 +66,7 @@ class DrowsinessEngine:
             self.current_state = DetectionState.NO_FACE
             self.closure_start_timestamp = None
             self.event_triggered_this_closure = False
+            self.was_drowsy_episode = False
             self.last_known_ear = None
             return DetectionState.NO_FACE, 0, None
 
@@ -58,6 +75,7 @@ class DrowsinessEngine:
             self.current_state = DetectionState.UNKNOWN
             self.closure_start_timestamp = None
             self.event_triggered_this_closure = False
+            self.was_drowsy_episode = False
             self.last_known_ear = None
             return DetectionState.UNKNOWN, 0, None
 
@@ -82,14 +100,21 @@ class DrowsinessEngine:
 
             if closure_duration_sec >= self.prolonged_closure_seconds:
                 self.current_state = DetectionState.POSSIBLE_DROWSINESS
+                self.was_drowsy_episode = True
                 if not self.event_triggered_this_closure:
                     self.event_triggered_this_closure = True
                     triggered_event = EventType.DROWSINESS.value
             else:
                 self.current_state = DetectionState.EYES_CLOSED
         else:
-            # Eyes clearly open
-            self.current_state = DetectionState.ALERT
+            # Eyes reopened
+            if self.was_drowsy_episode or self.current_state == DetectionState.POSSIBLE_DROWSINESS:
+                # Transition smoothly through RECOVERING state
+                self.current_state = DetectionState.RECOVERING
+                self.was_drowsy_episode = False
+            else:
+                self.current_state = DetectionState.ALERT
+
             self.closure_start_timestamp = None
             self.event_triggered_this_closure = False
             closure_duration_ms = 0
@@ -102,3 +127,4 @@ class DrowsinessEngine:
         self.closure_start_timestamp = None
         self.event_triggered_this_closure = False
         self.last_known_ear = None
+        self.was_drowsy_episode = False

@@ -3,20 +3,25 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/common/BrandLogo';
-import { PrimaryButton } from '../components/common/PrimaryButton';
-import { SecondaryButton } from '../components/common/SecondaryButton';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [resetSent, setResetSent] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
 
-  const { signInWithEmail, signInWithGoogle, loginAsDemoUser, resetPassword, isFirebaseConfigured } = useAuth();
+  const {
+    signInWithEmail,
+    signInWithGoogle,
+    loginAsDemoUser,
+    resetPassword,
+    isFirebaseConfigured,
+  } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -56,7 +61,7 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleDemoSignIn = () => {
-    loginAsDemoUser('Lord Sterling', 'sterling@drivesafe.luxury');
+    loginAsDemoUser('Alex Carter', 'driver@drivesafe.ai');
     navigate(from, { replace: true });
   };
 
@@ -72,225 +77,227 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ivory flex flex-col justify-between py-12 px-6 md:px-12">
-      {/* Brand Top Header */}
-      <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-        <BrandLogo variant="light" size="md" />
+    <div className="min-h-screen bg-obsidian text-ivory flex flex-col justify-between py-10 px-6 md:px-12 relative overflow-hidden">
+      {/* Background Motoring Ambient Lighting */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/images/coastal_sunset_tourer.jpg"
+          alt="Atmospheric motoring backdrop"
+          className="w-full h-full object-cover object-center filter brightness-[0.22] contrast-[1.1] blur-[2px]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/85 to-obsidian/70" />
+      </div>
+
+      {/* Top Header */}
+      <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10">
+        <BrandLogo variant="dark" size="md" />
         <Link
           to="/"
-          className="text-xs font-sans tracking-wide text-ink-muted hover:text-forest transition-colors"
+          className="text-xs font-sans tracking-wide text-parchment/70 hover:text-champagne transition-colors"
         >
           &larr; Return to Portal
         </Link>
       </div>
 
-      {/* Main Authentication Card */}
-      <div className="max-w-md w-full mx-auto my-8 bg-parchment/40 p-8 md:p-10 rounded border border-gold/30 shadow-luxury">
-        <div className="text-center mb-8">
-          <span className="eyebrow text-forest text-[10px] tracking-widest block mb-2">
-            TELEMETRY PORTAL
-          </span>
-          <h2 className="font-serif text-3xl font-medium text-ink tracking-tight">
-            Sign In to Your Studio
+      {/* Main Authentication Card Matching Reference Image */}
+      <div className="max-w-md w-full mx-auto my-8 bg-obsidian-card/90 backdrop-blur-xl p-8 md:p-10 rounded border border-champagne/30 shadow-luxury-dark relative z-10 space-y-6">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-full bg-emerald/60 text-champagne border border-champagne/30 flex items-center justify-center mx-auto mb-3">
+            <Lock className="w-5 h-5" />
+          </div>
+          <h2 className="font-serif text-3xl font-medium text-ivory tracking-tight">
+            Welcome Back
           </h2>
-          <p className="text-xs text-ink-muted mt-2 font-sans">
-            Access your driver vigilance telemetry, camera controls, and session archives.
+          <p className="text-xs text-parchment/70 mt-1 font-sans">
+            Sign in to continue your safer journeys.
           </p>
         </div>
 
-        {/* Firebase Environment Status Indicator */}
-        {!isFirebaseConfigured && (
-          <div className="mb-6 p-4 rounded bg-gold/10 border border-gold/40 text-xs text-forest-dark space-y-2">
-            <div className="flex items-center gap-1.5 font-medium">
-              <Sparkles className="w-4 h-4 text-gold-dark shrink-0" />
-              <span>Evaluation Mode Active</span>
-            </div>
-            <p className="text-[11px] leading-relaxed text-ink-muted">
-              Cloud Firebase credentials are not yet configured in <code className="bg-gold/20 px-1 py-0.5 rounded font-mono text-[10px]">.env</code>. You may use Demo Mode below for immediate inspection of all features.
-            </p>
-            <button
-              type="button"
-              onClick={handleDemoSignIn}
-              className="w-full mt-2 py-2 px-3 rounded bg-forest text-ivory text-xs font-medium hover:bg-forest-light transition-colors text-center"
-            >
-              Sign In as Demo Operator &rarr;
-            </button>
-          </div>
-        )}
-
-        {/* Error Alert */}
         {error && (
-          <div className="mb-6 p-3 rounded bg-red-950/10 border border-red-500/40 text-xs text-red-800 leading-normal">
+          <div className="p-3 rounded bg-red-950/80 border border-red-500 text-xs text-red-300 font-sans">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email input */}
-          <div>
-            <label className="block text-xs font-medium text-forest-dark mb-1.5 font-sans">
-              Email Address
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-parchment/80 font-sans">
+              Email address
             </label>
             <div className="relative">
+              <Mail className="w-4 h-4 text-champagne/70 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="driver@drivesafe.luxury"
-                className="w-full px-4 py-2.5 pl-10 rounded bg-ivory border border-gold/30 text-ink text-sm font-sans focus:outline-none focus:border-forest focus:ring-1 focus:ring-forest transition-colors placeholder:text-ink-muted/50"
+                placeholder="driver@drivesafe.ai"
+                required
+                className="w-full bg-obsidian-elevated border border-champagne/25 rounded pl-10 pr-3.5 py-2.5 text-xs text-ivory placeholder-parchment/30 focus:outline-none focus:border-champagne"
               />
-              <Mail className="w-4 h-4 text-gold absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
-          {/* Password input */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-medium text-forest-dark font-sans">
-                Password
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowForgotModal(true)}
-                className="text-[11px] text-gold hover:text-gold-dark font-medium transition-colors"
-              >
-                Forgot password?
-              </button>
-            </div>
+          {/* Password */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-parchment/80 font-sans">
+              Password
+            </label>
             <div className="relative">
+              <Lock className="w-4 h-4 text-champagne/70 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type={showPassword ? 'text' : 'password'}
-                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-                className="w-full px-4 py-2.5 pl-10 pr-10 rounded bg-ivory border border-gold/30 text-ink text-sm font-sans focus:outline-none focus:border-forest focus:ring-1 focus:ring-forest transition-colors placeholder:text-ink-muted/50"
+                required
+                className="w-full bg-obsidian-elevated border border-champagne/25 rounded pl-10 pr-10 py-2.5 text-xs text-ivory placeholder-parchment/30 focus:outline-none focus:border-champagne"
               />
-              <Lock className="w-4 h-4 text-gold absolute left-3.5 top-1/2 -translate-y-1/2" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                className="p-1 text-parchment/50 hover:text-champagne absolute right-3 top-1/2 -translate-y-1/2"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <PrimaryButton
-            type="submit"
-            size="md"
-            variant="forest"
-            isLoading={isLoading}
-            className="w-full mt-2"
-          >
-            Authenticate & Open Studio
-          </PrimaryButton>
-        </form>
+          {/* Remember me & Forgot Password */}
+          <div className="flex items-center justify-between text-xs font-sans pt-1">
+            <label className="flex items-center gap-2 cursor-pointer text-parchment/70">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="accent-[#C4A66A] rounded"
+              />
+              <span>Remember me</span>
+            </label>
 
-        {/* Divider */}
-        <div className="relative my-6 text-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gold/20" />
-          </div>
-          <span className="relative bg-parchment/60 px-3 text-[11px] text-ink-muted font-sans uppercase tracking-wider">
-            Or Alternate Sign-In
-          </span>
-        </div>
-
-        {/* Google Sign In */}
-        <div className="space-y-3">
-          <SecondaryButton
-            type="button"
-            size="md"
-            variant="outline"
-            onClick={handleGoogleSignIn}
-            className="w-full text-xs"
-          >
-            Continue with Google
-          </SecondaryButton>
-
-          {isFirebaseConfigured && (
             <button
               type="button"
-              onClick={handleDemoSignIn}
-              className="w-full py-2 text-center text-xs text-gold hover:text-forest transition-colors font-medium"
+              onClick={() => setShowForgotModal(true)}
+              className="text-champagne hover:underline"
             >
-              Quick Test as Demo Operator &rarr;
+              Forgot password?
             </button>
-          )}
+          </div>
+
+          {/* Sign In Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 rounded bg-champagne hover:bg-champagne-light active:bg-champagne-dark text-obsidian font-semibold text-xs tracking-wide transition-all shadow-sm hover:shadow-gold-glow flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <span className="w-4 h-4 border-2 border-obsidian border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <span>Sign In</span>
+            )}
+          </button>
+        </form>
+
+        {/* Separator */}
+        <div className="flex items-center gap-3 text-[11px] font-mono text-parchment/40">
+          <div className="flex-1 h-px bg-champagne/20" />
+          <span>or</span>
+          <div className="flex-1 h-px bg-champagne/20" />
         </div>
 
-        {/* Link to Register */}
-        <div className="mt-8 pt-6 border-t border-gold/20 text-center text-xs text-ink-muted">
-          <span>New driver to the platform? </span>
-          <Link
-            to="/register"
-            className="text-forest-dark font-semibold hover:text-gold transition-colors ml-1"
+        {/* Google Sign-in */}
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          className="w-full py-2.5 rounded bg-obsidian-elevated hover:bg-obsidian border border-champagne/25 text-ivory text-xs font-medium flex items-center justify-center gap-2 transition-colors"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <path
+              fill="#EA4335"
+              d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
+            />
+            <path
+              fill="#4285F4"
+              d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
+            />
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+
+        {/* Demo Mode Button (Delineated & Distinct) */}
+        <div className="pt-2 border-t border-obsidian-border text-center space-y-2">
+          <button
+            type="button"
+            onClick={handleDemoSignIn}
+            className="w-full py-2 rounded bg-emerald/30 hover:bg-emerald/50 border border-emerald/50 text-champagne text-xs font-mono transition-colors flex items-center justify-center gap-1.5"
           >
-            Register your vehicle &rarr;
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Continue in Demo Mode (Alex Carter)</span>
+          </button>
+        </div>
+
+        {/* Registration Link */}
+        <div className="text-center text-xs text-parchment/60 font-sans">
+          Don't have an account?{' '}
+          <Link to="/register" className="text-champagne font-semibold hover:underline">
+            Register here &rarr;
           </Link>
         </div>
       </div>
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
-        <div className="fixed inset-0 bg-ink/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-ivory border border-gold/40 p-6 md:p-8 rounded max-w-sm w-full shadow-2xl">
-            <h3 className="font-serif text-xl font-medium text-forest-dark mb-2">
-              Password Reset
+        <div className="fixed inset-0 z-50 bg-obsidian/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="max-w-sm w-full bg-obsidian-card border border-champagne/30 rounded p-6 shadow-luxury-dark space-y-4">
+            <h3 className="font-serif text-lg font-medium text-ivory">
+              Reset Password
             </h3>
             {resetSent ? (
-              <div className="space-y-4">
-                <p className="text-xs text-ink-muted leading-relaxed">
-                  A password reset dispatch has been transmitted to {forgotEmail}. Please inspect your inbox.
-                </p>
-                <button
-                  onClick={() => setShowForgotModal(false)}
-                  className="w-full py-2 bg-forest text-ivory text-xs font-medium rounded"
-                >
-                  Close Notice
-                </button>
-              </div>
+              <p className="text-xs text-emerald-300 font-sans">
+                Password reset link sent! Check your inbox.
+              </p>
             ) : (
-              <form onSubmit={handleForgotSubmit} className="space-y-4">
-                <p className="text-xs text-ink-muted leading-relaxed">
-                  Enter your registered email address to receive password reset instructions.
-                </p>
+              <form onSubmit={handleForgotSubmit} className="space-y-3">
                 <input
                   type="email"
-                  required
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
-                  placeholder="driver@drivesafe.luxury"
-                  className="w-full px-3 py-2 rounded bg-parchment/40 border border-gold/30 text-xs text-ink focus:outline-none focus:border-forest"
+                  placeholder="Enter your registered email"
+                  required
+                  className="w-full bg-obsidian-elevated border border-champagne/30 rounded px-3 py-2 text-xs text-ivory"
                 />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotModal(false)}
-                    className="flex-1 py-2 border border-gold/30 text-xs rounded text-ink"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-2 bg-forest text-ivory text-xs font-medium rounded hover:bg-forest-light"
-                  >
-                    Send Reset Link
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  className="w-full py-2 rounded bg-champagne text-obsidian text-xs font-semibold"
+                >
+                  Send Reset Link
+                </button>
               </form>
             )}
+            <button
+              onClick={() => {
+                setShowForgotModal(false);
+                setResetSent(false);
+              }}
+              className="w-full text-xs text-parchment/60 hover:text-ivory"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
-      {/* Footer Disclaimer */}
-      <div className="text-center text-xs text-ink-muted font-sans max-w-md mx-auto">
-        &copy; {new Date().getFullYear()} DriveSafe AI. Secure authentication for driver vigilance research.
+      {/* Footer Notice */}
+      <div className="text-center text-[11px] text-parchment/40 font-mono relative z-10">
+        &copy; {new Date().getFullYear()} DriveSafe AI &bull; Vigilance &amp; Heritage
       </div>
     </div>
   );

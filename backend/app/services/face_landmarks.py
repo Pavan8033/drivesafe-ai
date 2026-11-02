@@ -10,7 +10,7 @@ import numpy as np
 import mediapipe as mp
 from mediapipe.tasks.python import vision, BaseOptions
 
-from .eye_analysis import Point2D
+from .head_pose import Point3D
 
 logger = logging.getLogger("drivesafe.landmarks")
 
@@ -73,7 +73,7 @@ class FaceLandmarksService:
 
     def process_frame(
         self, frame: np.ndarray
-    ) -> Tuple[bool, List[Point2D], Optional[List[dict]]]:
+    ) -> Tuple[bool, List[Point3D], Optional[List[dict]]]:
         """Extract facial landmarks from a BGR image frame.
         
         Returns:
@@ -92,9 +92,16 @@ class FaceLandmarksService:
             if not detection_result.face_landmarks:
                 return False, [], None
 
-            # Primary face landmarks (normalized coordinates x: [0, 1], y: [0, 1])
+            # Primary face landmarks (normalized coordinates x: [0, 1], y: [0, 1], z)
             primary_landmarks = detection_result.face_landmarks[0]
-            points = [Point2D(x=float(lm.x), y=float(lm.y)) for lm in primary_landmarks]
+            points = [
+                Point3D(
+                    x=float(lm.x),
+                    y=float(lm.y),
+                    z=float(getattr(lm, "z", 0.0)),
+                )
+                for lm in primary_landmarks
+            ]
 
             blendshapes = None
             if detection_result.face_blendshapes:

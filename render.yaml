@@ -12,8 +12,14 @@ services:
       - key: CORS_ORIGINS
         value: "*"
       - key: DEFAULT_EAR_THRESHOLD
-        value: "0.21"
+        value: "0.12"
       - key: PROLONGED_CLOSURE_SECONDS
-        value: "1.5"
+        value: "0.8"
+      - key: HEAD_AWAY_SECONDS
+        value: "1.0"
+      - key: YAW_THRESHOLD_DEG
+        value: "12.0"
+      - key: PITCH_THRESHOLD_DEG
+        value: "12.0"
       - key: MAR_THRESHOLD
-        value: "0.60"
+        value: "0.65"
