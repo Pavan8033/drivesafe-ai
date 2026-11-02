@@ -123,6 +123,15 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
     return () => clearInterval(interval);
   }, [isMonitoring]);
 
+  // Incident alert counters (to announce 1 or 2 times max per continuous incident)
+  const headAwayAlertCountRef = useRef<number>(0);
+  const lastHeadAwayTimeRef = useRef<number>(0);
+
+  const drowsyAlertCountRef = useRef<number>(0);
+  const lastDrowsyTimeRef = useRef<number>(0);
+
+  const yawnAlertCountRef = useRef<number>(0);
+
   // Manage Repeating Audio Alert, Voice Co-Pilot, and Haptics based on hazard state
   useEffect(() => {
     if (!latestTelemetry || isMutedInternal) {
@@ -137,6 +146,8 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
       latestTelemetry.warning_active || isDrowsy || isHeadAway || isYawning;
 
     if (hasWarning) {
+      const now = Date.now();
+
       // Trigger Mobile Haptic Pulse Vibration (Tactile alert on phone/touch screens)
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
@@ -144,13 +155,52 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
         } catch {}
       }
 
-      // Trigger Voice Co-Pilot verbal safety cues
+      // 1. Head Turned Away: announce exactly 1 or 2 times max per continuous incident
+      if (isHeadAway) {
+        if (headAwayAlertCountRef.current === 0) {
+          voiceCoPilot.announceHeadAwayAlert();
+          headAwayAlertCountRef.current = 1;
+          lastHeadAwayTimeRef.current = now;
+        } else if (
+          headAwayAlertCountRef.current === 1 &&
+          now - lastHeadAwayTimeRef.current >= 5500
+        ) {
+          // Play 2nd reminder alert if head remains turned away after 5.5 seconds
+          voiceCoPilot.announceHeadAwayAlert();
+          headAwayAlertCountRef.current = 2;
+          lastHeadAwayTimeRef.current = now;
+        }
+        // If headAwayAlertCountRef.current >= 2: DO NOT repeat! Capped to 2 times.
+      } else {
+        headAwayAlertCountRef.current = 0;
+      }
+
+      // 2. Drowsiness: announce 1 or 2 times max per continuous incident
       if (isDrowsy) {
-        voiceCoPilot.announceDrowsinessAlert();
-      } else if (isHeadAway) {
-        voiceCoPilot.announceHeadAwayAlert();
-      } else if (isYawning) {
-        voiceCoPilot.announceYawnAlert();
+        if (drowsyAlertCountRef.current === 0) {
+          voiceCoPilot.announceDrowsinessAlert();
+          drowsyAlertCountRef.current = 1;
+          lastDrowsyTimeRef.current = now;
+        } else if (
+          drowsyAlertCountRef.current === 1 &&
+          now - lastDrowsyTimeRef.current >= 5000
+        ) {
+          voiceCoPilot.announceDrowsinessAlert();
+          drowsyAlertCountRef.current = 2;
+          lastDrowsyTimeRef.current = now;
+        }
+      } else {
+        drowsyAlertCountRef.current = 0;
+      }
+
+      // 3. Yawning: announce exactly 1 time per yawn event
+      if (isYawning) {
+        if (yawnAlertCountRef.current === 0) {
+          voiceCoPilot.announceYawnAlert();
+          yawnAlertCountRef.current = 1;
+        }
+      } else {
+        yawnAlertCountRef.current = 0;
       }
 
       if (!isAlarmAcknowledged) {
@@ -162,6 +212,9 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
       if (isAlarmAcknowledged) {
         setIsAlarmAcknowledged(false);
       }
+      headAwayAlertCountRef.current = 0;
+      drowsyAlertCountRef.current = 0;
+      yawnAlertCountRef.current = 0;
     }
   }, [latestTelemetry, isMutedInternal, isAlarmAcknowledged, isMonitoring]);
 
@@ -487,6 +540,8 @@ export const MonitoringViewport: React.FC<MonitoringViewportProps> = ({
               <span className="text-[11px] sm:text-xs text-red-300 font-sans">
                 {isDrowsy
                   ? `Eyelid closure sustained (${latestTelemetry?.eye_closure_duration_ms || 0}ms). Repeating acoustic alarm, voice & haptics active.`
+                  : latestTelemetry?.possible_yawning
+                  ? `Extended mouth aperture detected (${(latestTelemetry?.mouth_aspect_ratio || 0.52).toFixed(2)} MAR). Fatigue indicators observed.`
                   : `Head turned away sustained (${latestTelemetry?.head_away_duration_ms || 0}ms). Focus forward on the roadway.`}
               </span>
             </div>

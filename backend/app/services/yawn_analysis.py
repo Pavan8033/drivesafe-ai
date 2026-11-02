@@ -64,7 +64,7 @@ def calculate_mar(landmarks: Sequence[Point2D]) -> Optional[float]:
 class YawnTracker:
     """Temporal yawn evaluation tracking sustained mouth opening."""
 
-    def __init__(self, threshold: float = 0.65, min_duration_sec: float = 2.0):
+    def __init__(self, threshold: float = 0.50, min_duration_sec: float = 0.8):
         self.threshold = threshold
         self.min_duration_sec = min_duration_sec
         self.opening_start_time: Optional[float] = None

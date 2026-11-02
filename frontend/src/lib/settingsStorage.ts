@@ -15,14 +15,14 @@ export const DEFAULT_MONITORING_CONFIG: MonitoringConfig = {
   head_away_seconds: 1.0,
   yaw_threshold_deg: 12.0,
   pitch_threshold_deg: 12.0,
-  mar_threshold: 0.65,
-  yawn_min_seconds: 2.0,
+  mar_threshold: 0.50,
+  yawn_min_seconds: 0.8,
   max_fps: 10,
   alert_volume: 100,
   audio_alerts_enabled: true,
   voice_copilot_enabled: true,
   cockpit_theme: 'night',
-  constellation_overlay_enabled: true,
+  constellation_overlay_enabled: false,
 };
 
 export function loadMonitoringConfig(): MonitoringConfig {

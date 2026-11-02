@@ -29,8 +29,8 @@ class MonitoringConfig(BaseModel):
     head_away_seconds: float = Field(1.0, description="Duration in seconds before triggering sustained head-away alert")
     yaw_threshold_deg: float = Field(12.0, description="Yaw angle threshold in degrees for head turned away")
     pitch_threshold_deg: float = Field(12.0, description="Pitch angle threshold in degrees for head tilted away")
-    mar_threshold: float = Field(0.65, description="Mouth aspect ratio threshold for potential yawning")
-    yawn_min_seconds: float = Field(2.0, description="Minimum duration in seconds for yawning event")
+    mar_threshold: float = Field(0.50, description="Mouth aspect ratio threshold for potential yawning")
+    yawn_min_seconds: float = Field(0.8, description="Minimum duration in seconds for yawning event")
     max_fps: int = Field(10, description="Target frame rate for browser capture")
 
 class MonitoringTelemetry(BaseModel):

@@ -24,8 +24,8 @@ class Settings(BaseModel):
     HEAD_AWAY_SECONDS: float = float(os.getenv("HEAD_AWAY_SECONDS", "1.0"))
     YAW_THRESHOLD_DEG: float = float(os.getenv("YAW_THRESHOLD_DEG", "12.0"))
     PITCH_THRESHOLD_DEG: float = float(os.getenv("PITCH_THRESHOLD_DEG", "12.0"))
-    MAR_THRESHOLD: float = float(os.getenv("MAR_THRESHOLD", "0.65"))
-    YAWN_MIN_SECONDS: float = float(os.getenv("YAWN_MIN_SECONDS", "2.0"))
+    MAR_THRESHOLD: float = float(os.getenv("MAR_THRESHOLD", "0.50"))
+    YAWN_MIN_SECONDS: float = float(os.getenv("YAWN_MIN_SECONDS", "0.8"))
     MAX_FPS: int = int(os.getenv("MAX_FPS", "10"))
 
 settings = Settings()
